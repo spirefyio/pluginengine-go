@@ -1,9 +1,8 @@
 module github.com/spirefyio/pluginengine-go
 
-go 1.22.0
+go 1.23.2
 
 require (
-	github.com/extism/go-pdk v1.0.6
 	github.com/extism/go-sdk v1.5.0
 	github.com/tetratelabs/wazero v1.8.1
 	gopkg.in/yaml.v3 v3.0.1
