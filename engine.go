@@ -29,7 +29,7 @@ type (
 	}
 
 	hook struct {
-		pdk.Hook     `json:"hook" yaml:"hook"`
+		pdk.Hook `json:"hook" yaml:"hook"`
 		Plugin   plugin `json:"plugin" yaml:"plugin"`
 		Resolved bool   `json:"resolved" yaml:"resolved"`
 	}
@@ -102,7 +102,7 @@ func (e *Engine) addPlugin(p *plugin, plug Plugin) {
 		p.LoadOnStart = plug.LoadOnStart
 
 		// now add all of this plugins hooks to the unresolved list... a call to engine.resolve() will then try to
-		// find/resolve all extensions and subsequently resolve all plugins
+		// find/resolve all hooks and subsequently resolve all plugins
 		if nil != plug.Hooks && len(plug.Hooks) > 0 {
 			for _, ex := range plug.Hooks {
 				hk := &hook{
@@ -111,7 +111,7 @@ func (e *Engine) addPlugin(p *plugin, plug Plugin) {
 					Resolved: false,
 				}
 
-				// for each extension, add a reference pointer to THIS plugin so that when calling any extension
+				// for each hook, add a reference pointer to THIS plugin so that when calling any extension
 				// that is part of the same plugin owner, the pointer to the extism.Plugin instance can be used.
 				if callableHooks[ex.Id] != nil {
 					fmt.Println("It appears an extension is already added to the callableExtensions at id: ", ex.Id)
@@ -123,9 +123,8 @@ func (e *Engine) addPlugin(p *plugin, plug Plugin) {
 			}
 		}
 
-		// now add all the plugins extension points to the engines extension points using the ExtensionPoint object
+		// now add all the plugins anchors to the engines anchors using the Anchors object
 		// that will tie this plugin instance to it as well.
-
 		if nil != plug.Anchors && len(plug.Anchors) > 0 {
 			for _, ep := range plug.Anchors {
 				eep := &anchor{
@@ -182,6 +181,7 @@ func isValidNumber(str string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -204,16 +204,18 @@ func (e *Engine) GetHookForId(eid string) *pdk.Hook {
 // nil, look for a matching version (TODO: version range may be added in future). If version is nil, the first
 // anchr's hooks are returned.
 func (e *Engine) GetHooksForAnchor(anchorId string) ([]*pdk.Hook, error) {
-	fmt.Println("Looking for anchor: ", anchorId)
 	anchrs := e.anchors[anchorId]
 
 	if nil != anchrs && len(anchrs) > 0 {
+		hks := make([]*pdk.Hook, 0)
+
 		for _, anchrVer := range anchrs {
-			hks := make([]*pdk.Hook, 0)
 			for _, ahk := range anchrVer.Hooks {
 				hks = append(hks, &ahk.Hook)
 			}
 		}
+
+		return hks, nil
 	}
 
 	return nil, errors.New("no extensions found for extension point")
@@ -393,6 +395,7 @@ func (e *Engine) Start() error {
 		if len(plugin) > 0 {
 			for _, verPlugin := range plugin {
 				if verPlugin.LoadOnStart {
+					fmt.Println("Instantiating plugin: ", verPlugin.PathToModule)
 					err := e.instantiate(verPlugin)
 
 					if nil != err {
