@@ -364,6 +364,7 @@ func (e *Engine) instantiate(plugin *plugin) error {
 		},
 	}
 
+	extism.SetLogLevel(extism.LogLevelDebug)
 	pluginInstance, err := extism.NewPlugin(ctx, manifest, config, e.hostFuncs)
 
 	if err != nil {
@@ -510,15 +511,14 @@ func (e *Engine) CallHookFunc(hookId string, data []byte) ([]byte, error) {
 	callable := callableHooks[hookId]
 
 	if nil != callable {
-		extension := e.hooks[hookId]
+		hook := e.hooks[hookId]
 		if nil == callable.Plugin {
-			fmt.Println("Instantiating plugin: ", hookId)
 			if err := e.instantiate(callable); err != nil {
-				fmt.Println("Problem instantiating callable plugin: ", extension.Func)
+				fmt.Println("Problem instantiating callable plugin: ", hook.Func)
 			}
 		}
 
-		_, d, err := callable.Plugin.Call(extension.Func, data)
+		_, d, err := callable.Plugin.Call(hook.Func, data)
 		if nil != err {
 			return nil, err
 		}
