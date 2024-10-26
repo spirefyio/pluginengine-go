@@ -1,5 +1,3 @@
-// +build !wasm
-
 package pluginengine
 
 import (
@@ -14,13 +12,14 @@ import (
 	"unicode"
 
 	extism "github.com/extism/go-sdk"
+	pdk "github.com/spirefyio/plugin-go-pdk"
 	"github.com/tetratelabs/wazero"
 	"gopkg.in/yaml.v3"
 )
 
 type (
 	anchor struct {
-		Anchor `json:"anchor" yaml:"anchor"`
+		pdk.Anchor `json:"anchor" yaml:"anchor"`
 		// Because this outer ExtensionPoint wrapper allows for host extension points, which are native to Go, a func pointer
 		// to call upon that extension point is necessary. This is not the typical wasm string func name to call, but an
 		// actual Go function provided by the host to be called
@@ -30,7 +29,7 @@ type (
 	}
 
 	hook struct {
-		Hook     `json:"hook" yaml:"hook"`
+		pdk.Hook     `json:"hook" yaml:"hook"`
 		Plugin   plugin `json:"plugin" yaml:"plugin"`
 		Resolved bool   `json:"resolved" yaml:"resolved"`
 	}
@@ -189,7 +188,7 @@ func isValidNumber(str string) bool {
 // GetExtensionForId
 //
 // This function will look for a single extension based on it's id (and version?) and return it if found, nil otherwise
-func (e *Engine) GetHookForId(eid string) *Hook {
+func (e *Engine) GetHookForId(eid string) *pdk.Hook {
 	hk := e.hooks[eid]
 
 	if nil != hk && hk.Resolved {
@@ -204,13 +203,13 @@ func (e *Engine) GetHookForId(eid string) *Hook {
 // This method will look for a matching hook in the map of hooks and if found and the version provided is not
 // nil, look for a matching version (TODO: version range may be added in future). If version is nil, the first
 // anchr's hooks are returned.
-func (e *Engine) GetHooksForAnchor(anchorId string) ([]*Hook, error) {
+func (e *Engine) GetHooksForAnchor(anchorId string) ([]*pdk.Hook, error) {
 	fmt.Println("Looking for anchor: ", anchorId)
 	anchrs := e.anchors[anchorId]
 
 	if nil != anchrs && len(anchrs) > 0 {
 		for _, anchrVer := range anchrs {
-			hks := make([]*Hook, 0)
+			hks := make([]*pdk.Hook, 0)
 			for _, ahk := range anchrVer.Hooks {
 				hks = append(hks, &ahk.Hook)
 			}
@@ -482,7 +481,7 @@ func (e *Engine) resolve() {
 // to have native code functions tied to extension points that are then filled by plugin extensions.
 func (e *Engine) RegisterHostExtensionPoint(id, name, version, description string) {
 	ep := &anchor{
-		Anchor: Anchor{
+		Anchor: pdk.Anchor{
 			Id:          id,
 			Description: description,
 			Name:        name,

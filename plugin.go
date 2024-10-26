@@ -1,6 +1,6 @@
-// +build !wasm
-
 package pluginengine
+
+import pdk "github.com/spirefyio/plugin-go-pdk"
 
 type Plugin struct {
 	// A unique id for this plugin. It may often contain the base id that anchors defined within the plugin
@@ -18,11 +18,11 @@ type Plugin struct {
 	Description string `json:"description" yaml:"description"`
 
 	// A slice of anchors that this plugin defines.. anchors for other plugins to extend from
-	Anchors []Anchor `json:"anchors" yaml:"anchors"`
+	Anchors []pdk.Anchor `json:"anchors" yaml:"anchors"`
 
 	// A slice of hooks that attach to other plugin anchors.. contributions this plugin is adding to those
 	// anchors.
-	Hooks []Hook `json:"hooks" yaml:"hooks"`
+	Hooks []pdk.Hook `json:"hooks" yaml:"hooks"`
 
 	LoadOnStart bool `json:"loadOnStart" yaml:"loadOnStart"`
 }
